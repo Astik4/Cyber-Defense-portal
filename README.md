@@ -66,8 +66,3 @@ python backend/app.py
 
 This project is built for learning and educational purposes to explore SOC workflows, network monitoring, and cybersecurity concepts.
 
----
-
-## 👨‍💻 Author
-
-Astik
