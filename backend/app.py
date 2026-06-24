@@ -20,8 +20,11 @@ def create_app():
 
     init_db()
 
-    # ── Serve index.html at root ──────────────────────────────────
+    # ── Serve index.html at root and SPA paths ────────────────────
     @app.route('/')
+    @app.route('/dashboard')
+    @app.route('/admin/login')
+    @app.route('/admin/panel')
     def index():
         return send_from_directory(FRONTEND_DIR, 'index.html')
 
@@ -47,5 +50,6 @@ if __name__ == '__main__':
         app,
         host='0.0.0.0',
         port=settings.PORT,
-        debug=settings.DEBUG
+        debug=settings.DEBUG,
+        allow_unsafe_werkzeug=True
     )
