@@ -1,3 +1,7 @@
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*TripleDES.*")
+
 import os
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
