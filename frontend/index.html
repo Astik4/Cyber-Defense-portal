@@ -13,9 +13,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script crossorigin src="https://cdn.jsdelivr.net/npm/@remix-run/router@1.15.3/dist/router.umd.min.js"></script>
-  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-router@6.22.3/dist/umd/react-router.production.min.js"></script>
-  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-router-dom@6.22.3/dist/umd/react-router-dom.production.min.js"></script>
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
   <style>
@@ -1511,8 +1508,32 @@ body {
   <div id="root"></div>
   <script type="text/babel">
 const { useState, useEffect, useCallback, useRef } = React;
-const { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } = window.ReactRouterDOM;
 const API_BASE = '';
+
+// ═══════════════════════════════════════════════
+// SIMPLE HASH ROUTER (no CDN dependency needed)
+// ═══════════════════════════════════════════════
+function useRoute() {
+  const [route, setRoute] = useState(window.location.hash.slice(1) || '/dashboard');
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash.slice(1) || '/dashboard');
+    window.addEventListener('hashchange', onHash);
+    // Set initial hash if missing
+    if (!window.location.hash) window.location.hash = '/dashboard';
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  return route;
+}
+function navigate(path) { window.location.hash = path; }
+function NavLink({ to, className, children }) {
+  const route = useRoute();
+  const active = route === to || (to !== '/dashboard' && route.startsWith(to));
+  return (
+    <a href={'#' + to} className={className + (active ? ' active' : '')} onClick={e => { e.preventDefault(); navigate(to); }}>
+      {children}
+    </a>
+  );
+}
 
 // ═══════════════════════════════════════════════
 // LIVE STREAM WIDGET
@@ -1905,12 +1926,9 @@ const AlertsWidget = ({ alerts, blocklist, onBlockSuccess }) => {
 // ADMIN LOGIN
 // ═══════════════════════════════════════════════
 const AdminLogin = ({ onLoginSuccess, isAuthenticated }) => {
-  const navigate = useNavigate();
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/admin/panel', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) navigate('/admin/panel');
+  }, [isAuthenticated]);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -2024,7 +2042,6 @@ const TracerouteTool = ({ target, setTarget, addAudit }) => {
 // ADMIN PANEL  (full real-world version)
 // ═══════════════════════════════════════════════
 const AdminPanel = ({ systemStats, onLogout, config, blocklist, fetchConfig }) => {
-  const navigate = useNavigate();
   const [section, setSection] = useState('overview');
   const [toolTab, setToolTab] = useState('port');
   const [banIp, setBanIp] = useState('');
@@ -2622,12 +2639,12 @@ const DashboardView = ({
             <div className="header-stat"><span className="header-stat-value">{packets.length}</span><span className="header-stat-label">Packets Buffered</span></div>
             <div className="header-divider"/>
             <nav className="nav-tabs">
-              <Link to="/dashboard" className="nav-tab active">
+              <NavLink to="/dashboard" className="nav-tab">
                 <i className="fa-solid fa-gauge-high"></i>&nbsp;Dashboard
-              </Link>
-              <Link to="/admin/panel" className="nav-tab">
+              </NavLink>
+              <NavLink to="/admin/panel" className="nav-tab">
                 <i className="fa-solid fa-user-shield"></i>&nbsp;Admin Portal
-              </Link>
+              </NavLink>
             </nav>
           </div>
           <div className="system-status">
@@ -2656,7 +2673,10 @@ const DashboardView = ({
 // PROTECTED ROUTE
 // ═══════════════════════════════════════════════
 const ProtectedRoute = ({ children, isAuthenticated }) => {
-  return isAuthenticated ? children : <Navigate to="/admin/login" replace />;
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/admin/login');
+  }, [isAuthenticated]);
+  return isAuthenticated ? children : null;
 };
 
 // ═══════════════════════════════════════════════
@@ -2749,48 +2769,42 @@ function App() {
     setAdminAuthed(false);
   };
 
+  const route = useRoute();
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        <Route path="/dashboard" element={
-          <DashboardView
-            packets={packets}
-            alerts={alerts}
-            systemStatus={systemStatus}
-            systemStats={systemStats}
-            isScanning={isScanning}
-            scanProgress={scanProgress}
-            scanStatus={scanStatus}
-            scanThreats={scanThreats}
-            aiInput={aiInput}
-            setAiInput={setAiInput}
-            handleAiAnalysis={handleAiAnalysis}
-            isAnalyzing={isAnalyzing}
-            aiResult={aiResult}
-            trafficData={trafficData}
-            clock={clock}
-            startDeepScan={startDeepScan}
-            config={config}
-            blocklist={blocklist}
-            fetchConfig={fetchConfig}
-          />
-        } />
-        
-        <Route path="/admin/login" element={
-          <AdminLogin onLoginSuccess={handleLoginSuccess} isAuthenticated={isAdminAuthed} />
-        } />
-        
-        <Route path="/admin/panel" element={
-          <ProtectedRoute isAuthenticated={isAdminAuthed}>
-            <AdminPanel systemStats={systemStats} onLogout={handleLogout} config={config} blocklist={blocklist} fetchConfig={fetchConfig} />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      {(route === '/dashboard' || route === '/') && (
+        <DashboardView
+          packets={packets}
+          alerts={alerts}
+          systemStatus={systemStatus}
+          systemStats={systemStats}
+          isScanning={isScanning}
+          scanProgress={scanProgress}
+          scanStatus={scanStatus}
+          scanThreats={scanThreats}
+          aiInput={aiInput}
+          setAiInput={setAiInput}
+          handleAiAnalysis={handleAiAnalysis}
+          isAnalyzing={isAnalyzing}
+          aiResult={aiResult}
+          trafficData={trafficData}
+          clock={clock}
+          startDeepScan={startDeepScan}
+          config={config}
+          blocklist={blocklist}
+          fetchConfig={fetchConfig}
+        />
+      )}
+      {route === '/admin/login' && (
+        <AdminLogin onLoginSuccess={handleLoginSuccess} isAuthenticated={isAdminAuthed} />
+      )}
+      {route === '/admin/panel' && (
+        <ProtectedRoute isAuthenticated={isAdminAuthed}>
+          <AdminPanel systemStats={systemStats} onLogout={handleLogout} config={config} blocklist={blocklist} fetchConfig={fetchConfig} />
+        </ProtectedRoute>
+      )}
+    </>
   );
 }
 
