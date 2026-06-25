@@ -12,8 +12,15 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.4/dist/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script>
+    Babel.registerPreset('custom-react', {
+      presets: [
+        [Babel.availablePresets['react'], { runtime: 'classic' }]
+      ]
+    });
+  </script>
   <style>
 :root{--bg-void:#090c15;--bg-deep:#0e1220;--bg-surface:#141a2e;--bg-raised:#1c243f;--cyan:#38bdf8;--cyan-dim:rgba(56,189,248,0.08);--blue-electric:#3b82f6;--purple:#818cf8;--danger:#ef4444;--danger-dim:rgba(239,68,68,0.08);--warning:#f59e0b;--warning-dim:rgba(245,158,11,0.08);--success:#10b981;--success-dim:rgba(16,185,129,0.08);--font-display:'Plus Jakarta Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;--font-body:'Inter',sans-serif;--border-subtle:rgba(255,255,255,0.06);--border-mid:rgba(255,255,255,0.12);--gap:16px;--radius:8px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -212,7 +219,7 @@ input:checked + .toggle-slider:before{transform:translateX(18px)}
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script type="text/babel" data-presets="custom-react">
 const { useState, useEffect, useCallback, useRef } = React;
 const API_BASE = '';
 
