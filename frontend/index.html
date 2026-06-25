@@ -494,6 +494,7 @@ const AdminLogin = ({ onLoginSuccess, isAuthenticated }) => {
 const AdminPanel = ({ systemStats, onLogout, config, blocklist, fetchConfig }) => {
   const [section, setSection] = useState('overview');
   const [banIp, setBanIp] = useState('');
+  const [simulatedAttack, setSimulatedAttack] = useState(null);
   const [history, setHistory] = useState([]);
   const [portTarget, setPortTarget] = useState('127.0.0.1');
   const [portResults, setPortResults] = useState([]);
@@ -842,9 +843,15 @@ const AdminPanel = ({ systemStats, onLogout, config, blocklist, fetchConfig }) =
         {/* Attack Simulator */}
         {section==='simulator' && (
           <div className="glass-panel" style={{flex:1}}>
-            <div className="panel-header"><i className="fa-solid fa-vial"></i>&nbsp; Attack Simulation Console</div>
-            <p style={{fontSize:'10px',color:'rgba(200,230,245,0.4)',marginBottom:'14px',fontFamily:'var(--font-mono)'}}>
-              Generate synthetic security events to test the SOC dashboard, AI analyzer, and firewalls.
+            <div className="panel-header flex-between">
+              <span><i className="fa-solid fa-vial"></i>&nbsp; Attack Simulation Console</span>
+              <span className="panel-badge" style={{color:'var(--warning)',borderColor:'var(--warning)'}}>Diagnostic</span>
+            </div>
+            <p style={{fontSize:'10.5px',color:'rgba(200,230,245,0.5)',marginBottom:'14px',lineHeight:'1.5'}}>
+              Generate synthetic security events to test the SOC dashboard, alerts feed, and active firewalls.
+              <span style={{color:'var(--cyan)',display:'block',marginTop:'4px'}}>
+                <i className="fa-solid fa-circle-info"></i>&nbsp;Tip: Go back to the <strong>Dashboard</strong> after triggering to see the live network spikes and alerts feed!
+              </span>
             </p>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
               {[
@@ -853,17 +860,38 @@ const AdminPanel = ({ systemStats, onLogout, config, blocklist, fetchConfig }) =
                 {type:'sqli',title:'SQL Injection',desc:'Injects HTTP request with SQL payload (OR 1=1).',icon:'fa-database',btn:'Inject Payload'},
                 {type:'malware',title:'Malware C2 Beacon',desc:'Triggers callback from local system to known C2 server.',icon:'fa-skull',btn:'Beacon C2 Server'},
               ].map(s=>(
-                <div key={s.type} className="stat-box" style={{display:'flex',flexDirection:'column',gap:'6px',justifyContent:'space-between'}}>
+                <div key={s.type} className="stat-box" style={{display:'flex',flexDirection:'column',gap:'6px',justifyContent:'space-between',borderColor:simulatedAttack===s.type?'var(--success)':'var(--border-subtle)'}}>
                   <div>
                     <div style={{fontWeight:600,fontSize:'11.5px',color:'#fff',display:'flex',alignItems:'center',gap:'8px'}}>
-                      <i className={`fa-solid ${s.icon}`} style={{color:'var(--warning)'}}></i>{s.title}
+                      <i className={`fa-solid ${s.icon}`} style={{color:simulatedAttack===s.type?'var(--success)':'var(--warning)'}}></i>{s.title}
                     </div>
                     <div style={{fontSize:'10px',color:'#64748b',marginTop:'4px',fontFamily:'var(--font-mono)'}}>{s.desc}</div>
                   </div>
-                  <button className="cyber-btn-sm active" style={{marginTop:'8px',width:'100%',textAlign:'center'}} onClick={async()=>{
-                    try{await fetch(`${API_BASE}/api/admin/simulate_attack`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:s.type})});}catch{}
-                  }}>
-                    {s.btn}
+                  <button 
+                    className={`cyber-btn-sm ${simulatedAttack===s.type?'success active':'active'}`} 
+                    style={{marginTop:'8px',width:'100%',textAlign:'center',color:simulatedAttack===s.type?'#fff':''}} 
+                    onClick={async()=>{
+                      try{
+                        setSimulatedAttack(s.type);
+                        const r = await fetch(`${API_BASE}/api/admin/simulate_attack`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:s.type})});
+                        if (r.ok) {
+                          addAudit('admin', `Simulated attack: ${s.title}`);
+                          // Refetch history for overview list
+                          const h = await fetch(`${API_BASE}/api/history`);
+                          const d = await h.json();
+                          if (d.alerts) setHistory(d.alerts);
+                          // Keep simulated state for 2.5 seconds
+                          setTimeout(()=>setSimulatedAttack(null), 2500);
+                        } else {
+                          setSimulatedAttack(null);
+                        }
+                      }catch{
+                        setSimulatedAttack(null);
+                      }
+                    }}
+                    disabled={simulatedAttack!==null}
+                  >
+                    {simulatedAttack===s.type ? <><i className="fa-solid fa-circle-check"></i>&nbsp;Simulated!</> : s.btn}
                   </button>
                 </div>
               ))}

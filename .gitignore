@@ -14,3 +14,7 @@ env/
 # Editor
 .vscode/
 .idea/
+
+# Database
+*.db
+backend/db/*.db
