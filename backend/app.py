@@ -20,7 +20,7 @@ from flask_cors import CORS
 from config.settings import settings
 from db.database import init_db
 from api.routes import register_routes
-from core.sniffing.packet_sniffer import start_sniffing
+
 
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 
@@ -54,9 +54,6 @@ def create_app():
 
 
 app, socketio = create_app()
-
-# Start background packet capture/simulation thread
-start_sniffing(socketio)
 
 if __name__ == '__main__':
     # Run server

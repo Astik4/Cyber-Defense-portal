@@ -28,7 +28,23 @@ def run_deep_scan_and_emit(socketio):
         log_alert("deep_scan", alert['name'], alert['severity'], str(alert))
 
 def register_routes(app, socketio):
-    
+    # Track if sniffing has been started in this worker process
+    sniffer_started = False
+    sniffer_lock = threading.Lock()
+
+    @socketio.on('connect')
+    def handle_connect(auth=None):
+        nonlocal sniffer_started
+        with sniffer_lock:
+            if not sniffer_started:
+                try:
+                    from core.sniffing.packet_sniffer import start_sniffing
+                    start_sniffing(socketio)
+                    print("Lazy-started packet sniffer and simulation threads on client connect event.")
+                except Exception as e:
+                    print(f"Error starting sniffer on connect: {e}")
+                sniffer_started = True
+
     # ── Auth ────────────────────────────────────────────────────────
     @app.route("/api/login", methods=["POST"])
     def login():
