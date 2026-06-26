@@ -55,10 +55,10 @@ def create_app():
 
 app, socketio = create_app()
 
-if __name__ == '__main__':
-    # Start background packet capture thread
-    start_sniffing(socketio)
+# Start background packet capture/simulation thread
+start_sniffing(socketio)
 
+if __name__ == '__main__':
     # Run server
     socketio.run(
         app,
