@@ -10,6 +10,9 @@ warnings.filterwarnings("ignore", message=".*TripleDES.*")
 
 
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -50,9 +53,9 @@ def create_app():
     return app, socketio
 
 
-if __name__ == '__main__':
-    app, socketio = create_app()
+app, socketio = create_app()
 
+if __name__ == '__main__':
     # Start background packet capture thread
     start_sniffing(socketio)
 
