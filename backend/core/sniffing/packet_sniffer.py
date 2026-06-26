@@ -168,7 +168,7 @@ def simulate_packets(socketio):
     
     while True:
         if not active_config.get("sniffing_paused", False):
-            time.sleep(random.uniform(1.0, 2.5))
+            socketio.sleep(random.uniform(1.0, 2.5))
             
             src = random.choice(fake_sources)
             dst = random.choice(fake_dests)
@@ -223,7 +223,7 @@ def simulate_packets(socketio):
                     "severity": severity
                 })
         else:
-            time.sleep(1)
+            socketio.sleep(1)
 
 def packet_capture_loop(socketio):
     print("Starting scapy background packet capture...")
@@ -234,8 +234,6 @@ def packet_capture_loop(socketio):
         socketio.emit('admin_alert', {"message": "Packet sniffer failed to start."})
 
 def start_sniffing(socketio):
-    capture_thread = threading.Thread(target=packet_capture_loop, args=(socketio,), daemon=True)
-    capture_thread.start()
-    
-    simulation_thread = threading.Thread(target=simulate_packets, args=(socketio,), daemon=True)
-    simulation_thread.start()
+    # Use Socket.IO's framework-agnostic background task manager
+    socketio.start_background_task(target=packet_capture_loop, socketio=socketio)
+    socketio.start_background_task(target=simulate_packets, socketio=socketio)
