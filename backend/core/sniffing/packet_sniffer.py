@@ -167,7 +167,7 @@ def simulate_packets(socketio):
     ]
     
     while True:
-        if not active_config.get("sniffing_paused", False):
+        if not active_config.get("sniffing_paused", False) and active_config.get("simulation_active", True):
             socketio.sleep(random.uniform(1.0, 2.5))
             
             src = random.choice(fake_sources)

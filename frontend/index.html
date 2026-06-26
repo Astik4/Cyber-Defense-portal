@@ -792,6 +792,7 @@ const AdminPanel = ({ systemStats, onLogout, config, blocklist, fetchConfig }) =
                 {key:'honeypot_active',label:'Honeypot Trap',desc:'Deploy honeypot decoys to lure and identify attackers'},
                 {key:'reverse_tracing_active',label:'Reverse IP Tracing',desc:'Automatically trace and geolocate suspicious source IPs'},
                 {key:'db_encryption_active',label:'Database Encryption',desc:'Enable AES-256 payload field isolation for stored alerts'},
+                {key:'simulation_active',label:'Traffic Simulator',desc:'Simulate background traffic/attacks (useful for cloud demos without real network access)'},
               ].map(m=>(
                 <div key={m.key} className="toggle-row">
                   <div>
@@ -979,7 +980,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [trafficData, setTrafficData] = useState(Array(30).fill({volume:5}));
   const [clock, setClock] = useState('');
-  const [config, setConfig] = useState({sniffing_paused:false,ai_enabled:true,emergency_lockdown:false,honeypot_active:true,reverse_tracing_active:false,db_encryption_active:false});
+  const [config, setConfig] = useState({sniffing_paused:false,ai_enabled:true,emergency_lockdown:false,honeypot_active:true,reverse_tracing_active:false,db_encryption_active:false,simulation_active:true});
   const [blocklist, setBlocklist] = useState([]);
 
   useEffect(()=>{const t=()=>setClock(new Date().toLocaleTimeString('en-GB'));t();const id=setInterval(t,1000);return()=>clearInterval(id);},[]);

@@ -141,7 +141,7 @@ def register_routes(app, socketio):
         if not data:
             return jsonify({"error": "Missing payload"}), 400
 
-        for key in ["sniffing_paused", "ai_enabled", "emergency_lockdown", "honeypot_active", "reverse_tracing_active", "db_encryption_active"]:
+        for key in ["sniffing_paused", "ai_enabled", "emergency_lockdown", "honeypot_active", "reverse_tracing_active", "db_encryption_active", "simulation_active"]:
             if key in data:
                 active_config[key] = bool(data[key])
 
