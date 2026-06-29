@@ -1,7 +1,9 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import jsonify, request
 import threading
 import psutil
 import time
+import random
+import socket
 
 from config.settings import settings
 from core.state import active_config, blocked_ips, active_rules
@@ -259,7 +261,6 @@ def register_routes(app, socketio):
     # ── Port Scanner ────────────────────────────────────────────────
     @app.route("/api/portscan", methods=["POST"])
     def run_port_scan_endpoint():
-        import socket
         data = request.get_json(silent=True)
         if not data or 'target' not in data:
             return jsonify({"error": "Missing target"}), 400
@@ -309,9 +310,6 @@ def register_routes(app, socketio):
             return jsonify({"error": "Missing attack type"}), 400
             
         attack_type = data['type'].strip()
-        
-        import random
-        import time
         
         timestamp = time.strftime("%H:%M:%S")
         
@@ -476,7 +474,6 @@ def register_routes(app, socketio):
             return jsonify({"error": "IP target is required"}), 400
 
         # Run simulated traceroute
-        import random
         hops = [
             {"hop": 1, "ip": "192.168.1.1", "name": "local-gateway.home.arpa", "rtt": f"{random.uniform(0.5, 1.5):.2f} ms", "geo": "Local Subnet"},
             {"hop": 2, "ip": "10.45.192.1", "name": "isp-gateway-pool.net", "rtt": f"{random.uniform(3.0, 6.0):.2f} ms", "geo": "Regional Node"},

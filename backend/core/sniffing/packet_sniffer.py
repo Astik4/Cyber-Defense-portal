@@ -1,6 +1,6 @@
 from scapy.all import sniff, IP, TCP, UDP
 import time
-import threading
+import random
 from config.settings import settings
 from core.state import active_config, blocked_ips, active_rules
 
@@ -146,7 +146,6 @@ def analyze_packet(packet, socketio):
         pass
 
 def simulate_packets(socketio):
-    import random
     fake_sources = [
         "192.168.1.15", "10.0.0.4", "192.168.1.100", "8.8.8.8", "1.1.1.1", 
         "185.220.101.5", "45.227.254.10", "198.51.100.77", "203.0.113.15"
